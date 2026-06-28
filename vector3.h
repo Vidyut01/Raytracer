@@ -1,9 +1,7 @@
 #ifndef VECTOR3_H
 #define VECTOR3_H
 
-#include <iostream>
-#include <cmath>
-
+#include "raytracer.h"
 class Vector3 {
 public:
     double e[3];

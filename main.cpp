@@ -1,34 +1,29 @@
-#include "color.h"
-#include "vector3.h"
-#include "ray.h"
+#include "raytracer.h"
 
-#include <iostream>
-
-double hit_sphere(const Point3 &center, double radius, const Ray &r) {
-    Vector3 oc = center - r.origin();
-    auto a = r.direction().length_squared();
-    auto h = dot(r.direction(), oc);
-    auto c = oc.length_squared() - radius * radius;
-    auto discriminant = h*h - a*c;
-
-    if (discriminant < 0) return -1.0;
-    return (h - std::sqrt(discriminant)) / a;
-}
+#include "object.h"
+#include "object_list.h"
+#include "sphere.h"
 
 // tmp define, the numbers were confusing
 #define Color_White Color(1.0, 1.0, 1.0)
 #define Color_Sky Color(0.5, 0.7, 1.0)
 #define Color_Red Color(1.0, 0.0, 0.0)
+// #define Circle_Center Point3(0,0,-1)
+// #define Circle_Radius 0.5
+#include <vector>
+const std::vector<std::pair<Point3, double>> spheres = {
+    {Point3(0,0,-1), 0.5},
+    {Point3(0,-100.5, -1), 100},
+    {Point3(1, 50, -150), 100}
+};
 
-#define Circle_Center Point3(0,0,-1)
-#define Circle_Radius 0.5
 
-Color ray_color(const Ray &r) {
-    auto t = hit_sphere(Circle_Center, Circle_Radius, r);
-    if (t > 0) {
-        Vector3 N = unit_vector(r.at(t) - Circle_Center);
-        return 0.5 * Color(N.x() + 1, N.y() + 1, N.z() + 1);
+Color ray_color(const Ray &r, const ObjectList &world) {
+    HitRecord rec;
+    if (world.hit(r, Interval(0, infinity), rec)) {
+        return 0.5 * (rec.normal + Color_White);
     }
+
     Vector3 unit_dir = unit_vector(r.direction());
     auto a = 0.5 * (unit_dir.y() + 1.0);
     return (1.0 - a) * Color_White + a * Color_Sky;
@@ -36,9 +31,14 @@ Color ray_color(const Ray &r) {
 
 int main(int argc, char const *argv[])
 {
+    // Image
     auto aspect_ratio = 16.0 / 9.0;
     int width = 400;
     int height = (height = width / aspect_ratio) >= 1 ? height : 1;
+
+    // World
+    ObjectList world;
+    for (auto [p, r]: spheres) world.add(make_shared<Sphere>(p, r));
 
     // Camera
     auto focal_length = 1.0;
@@ -65,7 +65,7 @@ int main(int argc, char const *argv[])
             auto ray_dir = px_center - camera_center;
             Ray r(camera_center, ray_dir);
 
-            auto px_color = ray_color(r);
+            auto px_color = ray_color(r, world);
             write_color(std::cout, px_color);
         }
     }
