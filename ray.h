@@ -11,7 +11,7 @@ public:
     const Point3& origin() const { return orig; }
     const Vector3& direction() const { return dir; }
 
-    Point3 at(float t) const {
+    Point3 at(double t) const {
         return orig + t * dir;
     }
 private:

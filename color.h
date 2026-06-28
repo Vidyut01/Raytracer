@@ -5,9 +5,9 @@
 
 #include <iostream>
 
-using color = Vector3;
+using Color = Vector3;
 
-void write_color(std::ostream &out, const color &px_color) {
+void write_color(std::ostream &out, const Color &px_color) {
     auto r = px_color.x();
     auto g = px_color.y();
     auto b = px_color.z();
