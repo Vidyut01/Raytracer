@@ -2,12 +2,14 @@
 #define CAMERA_H
 
 #include "object_list.h"
+#include "material.h"
 
 class Camera {
 private:
     double aspect_ratio = 16.0 / 9.0;
     int width = 400;
     int samples_per_px = 100;
+    int max_depth = 50;
 
     double px_samples_scale;
     int height;
@@ -53,10 +55,16 @@ public:
     }
 
 private:
-    Color ray_color(const Ray &r, const ObjectList &world) const {
+    Color ray_color(const Ray &r, const ObjectList &world, int depth = 0) const {
+        if (depth > max_depth) return Color(0,0,0);
         HitRecord rec;
-        if (world.hit(r, Interval(0, infinity), rec)) {
-            return 0.5 * (rec.normal + Color_White);
+        if (world.hit(r, Interval(0.001, infinity), rec)) {
+            Ray scattered;
+            Color attenuation;
+            if (rec.mat->scatter(r, rec, attenuation, scattered)) {
+                return attenuation * ray_color(scattered, world, depth + 1);
+            }
+            return Color(0,0,0);
         }
 
         Vector3 unit_dir = unit_vector(r.direction());

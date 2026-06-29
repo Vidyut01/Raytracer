@@ -35,6 +35,19 @@ public:
 
     double length() const { return std::sqrt(length_squared()); }
     double length_squared() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
+
+    static Vector3 random() {
+        return Vector3(random_double(), random_double(), random_double());
+    }
+
+    static Vector3 random(double min, double max) {
+        return Vector3(random_double(min,max), random_double(min,max), random_double(min,max));
+    }
+
+    bool near_zero() const {
+        auto s = 1e-8;
+        return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+    }
 };
 
 using Point3 = Vector3;
@@ -85,8 +98,31 @@ inline Vector3 cross(const Vector3 &x, const Vector3 &y) {
     );
 }
 
+// Unit Vector
 inline Vector3 unit_vector(const Vector3 &v) {
     return v / v.length();
+}
+inline Vector3 random_unit_vector() {
+    for (;;) {
+        auto p = Vector3::random(-1, 1);
+        auto lensq = p.length_squared();
+        if (1e-160 < lensq && lensq <= 1) return p / std::sqrt(lensq);
+    }
+}
+
+inline Vector3 random_on_hemisphere(const Vector3 &normal) {
+    Vector3 on_unit_sphere = random_unit_vector();
+    return (dot(on_unit_sphere, normal) > 0) ? on_unit_sphere : -on_unit_sphere;
+}
+
+inline Vector3 reflect(const Vector3 &v, const Vector3 &normal) {
+    return v - 2 * dot(v, normal) * normal;
+}
+inline Vector3 refract(const Vector3 &uv, const Vector3 &normal, double etai_over_etat) {
+    auto cos_theta = std::fmin(dot(-uv, normal), 1.0);
+    Vector3 r_out_prep = etai_over_etat * (uv + cos_theta * normal);
+    Vector3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_prep.length_squared())) * normal;
+    return r_out_prep + r_out_parallel;
 }
 
 
