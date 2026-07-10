@@ -13,5 +13,5 @@ test:
 	$(TARGET) > $(TEST_OUT)
 
 clean:
-	rm $(BUILD_DIR)/*
-	rmdir $(BUILD_DIR)
+	rm -f $(BUILD_DIR)/*
+	rmdir -p $(BUILD_DIR)
